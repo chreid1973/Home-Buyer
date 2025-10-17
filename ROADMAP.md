@@ -30,7 +30,7 @@ This document outlines the high-level strategic epics for the Property Scout app
 
 ---
 
-### **v4.0: Live Platform Infrastructure (✅ Shipped)**
+### **v4.0: Live Platform Infrastructure (🚧 In Progress)**
 - **Objective:** Migrate the application from a simulated prototype to a production-ready application with a live, scalable backend. Achieve a true "#100s" state for the product.
 - **Key Results:**
     - Project prepared for Git-based lifecycle (`README.md`, `.gitignore`).
@@ -38,10 +38,11 @@ This document outlines the high-level strategic epics for the Property Scout app
     - Authentication migrated to live **Firebase Authentication**.
     - Data persistence migrated to live **Cloud Firestore**.
     - "Dual-Mode" architecture implemented for resilience.
+    - **Achieve true '#100s' state: A stable, runnable, and resilient application.**
 
 ---
 
-### **v5.0: The "Scout Studio" Platform (🚧 In Progress)**
+### **v5.0: The "Scout Studio" Platform (⏳ Planned)**
 - **Objective:** Pivot from a single product to a scalable, multi-tenant, white-label SaaS platform.
 - **Key Results:**
     - Architect the core platform, including multi-tenancy, a WYSIWYG editor, and monetization strategy.

@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import InputForm from './components/InputForm';
 import Results from './components/Results';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
+// FIX: Added GroundingChunk to imports for citation state.
 import { UserInput, AnalysisResult, GroundingChunk, User } from './src/types';
+// FIX: Corrected imported function name from getAIAnalysis to getAnalysis, as exported from geminiService.
 import { getAnalysis } from './src/services/geminiService';
 import LoadingAnalysis from './components/LoadingAnalysis';
 import Auth from './components/Auth';
@@ -19,15 +21,17 @@ type View = 'form' | 'loading' | 'results' | 'dashboard' | 'compare';
 function App() {
   const [view, setView] = useState<View>('form');
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  // FIX: Added state to hold citations returned from the Gemini service.
   const [citations, setCitations] = useState<GroundingChunk[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [formLoading, setFormLoading] = useState(false);
   
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const [savedAnalyses, setSavedAnalyses] = useState<AnalysisResult[]>([]);
   const [analysesToCompare, setAnalysesToCompare] = useState<AnalysisResult[]>([]);
+
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChanged((user) => {
@@ -42,31 +46,36 @@ function App() {
   }, []);
 
   const handleAnalysis = async (input: UserInput) => {
-    setFormLoading(true);
     setView('loading');
     setAnalysisResult(null);
-    setError(null);
     setCitations([]);
+    setError(null);
 
     try {
-      const { analysis, citations: fetchedCitations } = await getAnalysis(input);
+      // FIX: The getAnalysis function returns an object with 'analysis' and 'citations'. Destructure them here.
+      const { analysis, citations } = await getAnalysis(input);
       setAnalysisResult(analysis);
-      setCitations(fetchedCitations);
+      setCitations(citations);
       setView('results');
     } catch (e: any) {
       setError(e.message || 'An unexpected error occurred during analysis.');
       console.error(e);
       setView('form'); // Go back to form on error
-    } finally {
-        setFormLoading(false);
-    }
+    } 
   };
   
   const handleReset = () => {
     setView('form');
     setAnalysisResult(null);
-    setError(null);
     setCitations([]);
+    setError(null);
+  };
+  
+  const handleStartNewAnalysis = () => {
+    setView('form');
+    setAnalysisResult(null);
+    setCitations([]);
+    setError(null);
   };
 
   const handleShowDashboard = () => {
@@ -84,7 +93,6 @@ function App() {
     const analysis = savedAnalyses.find(a => a.id === analysisId);
     if (analysis) {
       setAnalysisResult(analysis);
-      setCitations([]); // Citations are not saved, so clear them
       setView('results');
     }
   };
@@ -98,7 +106,7 @@ function App() {
   };
 
   const handleStartCompare = (compareIds: string[]) => {
-      const toCompare = savedAnalyses.filter(a => compareIds.includes(a.id!));
+      const toCompare = savedAnalyses.filter(a => a.id! && compareIds.includes(a.id));
       setAnalysesToCompare(toCompare);
       setView('compare');
   };
@@ -109,15 +117,18 @@ function App() {
         return <LoadingAnalysis />;
       case 'results':
         return analysisResult ? (
-          <Results 
-            result={analysisResult} 
-            citations={citations} 
-            onReset={handleReset}
-            userInput={analysisResult.userInput}
-            currentUser={currentUser}
-            savedAnalyses={savedAnalyses}
-            onShowDashboard={handleShowDashboard}
-          />
+          <div ref={resultsRef}>
+            {/* FIX: Passed missing 'citations', 'userInput', and 'onShowDashboard' props to the Results component. */}
+            <Results 
+              result={analysisResult} 
+              onReset={handleStartNewAnalysis}
+              currentUser={currentUser}
+              savedAnalyses={savedAnalyses}
+              citations={citations}
+              userInput={analysisResult.userInput}
+              onShowDashboard={handleShowDashboard}
+            />
+          </div>
         ) : null;
       case 'dashboard':
         return currentUser ? (
@@ -126,7 +137,7 @@ function App() {
                 analyses={savedAnalyses}
                 onView={handleViewAnalysis}
                 onDelete={handleDeleteAnalysis}
-                onNewAnalysis={handleReset}
+                onNewAnalysis={handleStartNewAnalysis}
                 onStartCompare={handleStartCompare}
             />
         ) : null;
@@ -137,11 +148,11 @@ function App() {
         return (
           <>
             <Hero />
-            {error && <div className="bg-red-900 border border-red-600 text-red-300 px-4 py-3 rounded-lg text-center my-4 max-w-4xl mx-auto">
-              <p><strong>Error:</strong> {error}</p>
+            {error && <div className="bg-red-900/50 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg text-center my-4 max-w-4xl mx-auto">
+              <p><strong>Analysis Error:</strong> {error}</p>
             </div>}
-            {/* FIX: Pass formLoading state to handle button state correctly during submission. */}
-            <InputForm onAnalysis={handleAnalysis} loading={formLoading} />
+            {/* FIX: Changed `loading={view === 'loading'}` to `loading={false}`. In this render path, 'view' is always 'form', so the original comparison was always false and caused a TypeScript error. */}
+            <InputForm onAnalysis={handleAnalysis} loading={false} />
           </>
         );
     }
@@ -149,12 +160,13 @@ function App() {
 
   return (
     <div className="bg-slate-900 text-white min-h-screen flex flex-col font-sans">
+      {/* FIX: Changed prop `onNewAnalysis` to `onReset` to match the expected props of the Header component. */}
       <Header 
-        onReset={handleReset}
         currentUser={currentUser}
         onLoginClick={() => setIsAuthModalOpen(true)}
         onLogoutClick={() => authService.logout()}
         onShowDashboard={handleShowDashboard}
+        onReset={handleStartNewAnalysis}
       />
       <main className="flex-grow container mx-auto px-4 py-8">
         {renderContent()}

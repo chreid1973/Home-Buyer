@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnalysisResult, GroundingChunk, User, UserInput } from '../src/types';
+import { analysisService } from '../src/services/analysisService';
+
 import VerdictReveal from './VerdictReveal';
 import MarketGauge from './MarketGauge';
-import LocationRadarChart from './LocationRadarChart';
-import OwnershipCostChart from './OwnershipCostChart';
 import AffordabilityIndex from './AffordabilityIndex';
+import OwnershipCostChart from './OwnershipCostChart';
+import LocationRadarChart from './LocationRadarChart';
 import BreakEvenAnalysis from './BreakEvenAnalysis';
 import CommuteAnalysis from './CommuteAnalysis';
 import Citation from './Citation';
-import { analysisService } from '../src/services/analysisService';
+import StopIcon from './icons/StopIcon';
 
 interface ResultsProps {
   result: AnalysisResult;
@@ -20,86 +22,126 @@ interface ResultsProps {
   onShowDashboard: () => void;
 }
 
-const Results: React.FC<ResultsProps> = ({ result, citations, onReset, userInput, currentUser, savedAnalyses, onShowDashboard }) => {
-  const [isSaving, setIsSaving] = useState(false);
-  
-  // An analysis is considered saved if it has an ID and that ID exists in the savedAnalyses list.
-  const isSaved = !!(result.id && savedAnalyses.some(a => a.id === result.id));
+const isAnalysisResultValid = (result: any): result is AnalysisResult => {
+    return (
+        result &&
+        result.verdict &&
+        result.verdict.decision &&
+        result.marketAnalysis &&
+        result.affordability &&
+        result.ownershipCost &&
+        result.breakEven &&
+        result.commute &&
+        result.locationScore &&
+        result.userInput
+    );
+};
 
-  const handleSave = async () => {
-      if (!currentUser) {
-          alert("Please log in to save your analysis.");
-          return;
-      }
-      setIsSaving(true);
-      try {
-          await analysisService.saveAnalysis(currentUser, result);
-          alert('Analysis saved successfully!');
-          onShowDashboard(); // Go to dashboard after saving
-      } catch (error) {
-          alert('Failed to save analysis.');
-          console.error(error);
-      } finally {
-          setIsSaving(false);
-      }
-  };
-  
-  return (
-    <div className="space-y-12">
-      <VerdictReveal verdict={result.verdict} />
+const Results: React.FC<ResultsProps> = ({ result, citations, onReset, currentUser, savedAnalyses, onShowDashboard }) => {
+    const [isSaving, setIsSaving] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <AffordabilityIndex affordability={result.affordability} />
-        <MarketGauge marketAnalysis={result.marketAnalysis} />
-        <BreakEvenAnalysis breakEven={result.breakEven} />
-      </div>
+    useEffect(() => {
+        if (result.id) {
+            setIsSaved(true);
+        } else {
+            const alreadySaved = savedAnalyses.some(saved => 
+                JSON.stringify(saved.userInput) === JSON.stringify(result.userInput) &&
+                saved.verdict.summary === result.verdict.summary
+            );
+            setIsSaved(alreadySaved);
+        }
+    }, [result, savedAnalyses]);
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <div className="lg:col-span-3 bg-slate-800 p-6 rounded-lg">
-          <h2 className="text-2xl font-bold mb-4 text-cyan-400">Total Monthly Ownership Cost</h2>
-          <OwnershipCostChart ownershipCost={result.ownershipCost} />
-        </div>
-        <div className="lg:col-span-2 bg-slate-800 p-6 rounded-lg">
-          <h2 className="text-2xl font-bold mb-4 text-cyan-400">Location Score</h2>
-          <LocationRadarChart locationScore={result.locationScore} />
-        </div>
-      </div>
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-         <CommuteAnalysis commute={result.commute} from={userInput.propertyLocation} to={userInput.workLocation} />
-         {/* Placeholder for another chart, e.g. TrendChart if data is available */}
-      </div>
-
-
-      {citations.length > 0 && <Citation citations={citations} />}
-
-      <div className="text-center mt-12 flex items-center justify-center gap-4 flex-wrap">
-        <button
-          onClick={onReset}
-          className="py-3 px-12 border border-cyan-600 text-cyan-400 font-medium rounded-md hover:bg-cyan-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 focus:ring-offset-slate-900 transition-colors duration-200"
-        >
-          Analyze Another Property
-        </button>
-         {currentUser && (
-            isSaved ? (
-                <button
-                    onClick={onShowDashboard}
-                    className="py-3 px-12 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-slate-900 transition-colors duration-200"
-                >
-                    View in Dashboard
+    if (!isAnalysisResultValid(result)) {
+        return (
+            <div className="text-center py-20 flex flex-col items-center justify-center">
+                <StopIcon className="w-16 h-16 text-red-400 mb-4" />
+                <h2 className="text-3xl font-bold mt-6 text-white">Analysis Data Incomplete</h2>
+                <p className="text-slate-300 mt-2 text-lg max-w-2xl">
+                    The AI model returned an incomplete or malformed analysis. This can sometimes happen during periods of high demand. Please try generating a new analysis.
+                </p>
+                <button onClick={onReset} className="mt-8 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Start New Analysis
                 </button>
-            ) : (
-                <button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="py-3 px-12 bg-cyan-600 text-white font-medium rounded-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 focus:ring-offset-slate-900 transition-colors duration-200 disabled:bg-slate-500 disabled:cursor-not-allowed"
-                >
-                    {isSaving ? 'Saving...' : 'Save Analysis'}
-                </button>
-            )
-        )}
-      </div>
-    </div>
-  );
+            </div>
+        );
+    }
+
+    const handleSave = async () => {
+        if (!currentUser) {
+            alert('Please log in to save your analysis.');
+            return;
+        }
+        setIsSaving(true);
+        setError(null);
+        try {
+            await analysisService.saveAnalysis(currentUser, result);
+            setIsSaved(true);
+        } catch (e: any) {
+            setError(e.message || 'Failed to save analysis. Please try again.');
+            console.error(e);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="max-w-6xl mx-auto">
+            <div className="flex flex-wrap gap-4 justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold">Analysis Complete</h1>
+                <div className="flex items-center gap-2">
+                    {currentUser && (
+                        isSaved ? (
+                            <button onClick={onShowDashboard} className="bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                                ✓ Saved (View Dashboard)
+                            </button>
+                        ) : (
+                            <button onClick={handleSave} disabled={isSaving} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-slate-500 disabled:cursor-not-allowed">
+                                {isSaving ? 'Saving...' : 'Save Analysis'}
+                            </button>
+                        )
+                    )}
+                    <button onClick={onReset} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                        New Analysis
+                    </button>
+                </div>
+            </div>
+            {error && <div className="bg-red-900 border border-red-600 text-red-300 px-4 py-3 rounded-lg text-center my-4 max-w-4xl mx-auto"><p><strong>Error:</strong> {error}</p></div>}
+
+            <VerdictReveal verdict={result.verdict} />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
+                <AffordabilityIndex affordability={result.affordability} />
+                <MarketGauge marketAnalysis={result.marketAnalysis} />
+                <BreakEvenAnalysis breakEven={result.breakEven} />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                <div className="lg:col-span-2 bg-slate-800 p-6 rounded-lg">
+                    <h3 className="text-2xl font-bold text-cyan-400 mb-4">Ownership Cost Breakdown</h3>
+                    <OwnershipCostChart ownershipCost={result.ownershipCost} />
+                </div>
+                <div className="bg-slate-800 p-6 rounded-lg flex flex-col">
+                    <h3 className="text-2xl font-bold text-cyan-400 mb-4">Location Score</h3>
+                    <div className="flex-grow">
+                        <LocationRadarChart locationScore={result.locationScore} />
+                    </div>
+                </div>
+            </div>
+
+             <div className="mt-8">
+                <CommuteAnalysis 
+                    commute={result.commute} 
+                    from={result.userInput.propertyLocation} 
+                    to={result.userInput.workLocation} 
+                />
+            </div>
+            
+            <Citation citations={citations} />
+        </div>
+    );
 };
 
 export default Results;
