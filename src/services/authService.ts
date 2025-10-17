@@ -1,13 +1,51 @@
-// This file is a placeholder for authentication service logic,
-// such as interacting with Firebase Auth or another provider.
+// @ts-nocheck
+import { auth, isFirebaseConnected } from '../firebaseConfig';
+import { User } from '../types';
 
-export const signIn = async () => {
-    console.log("Signing in...");
-    // Placeholder for sign-in logic
-    return { uid: '123', email: 'user@example.com' };
+const onAuthStateChanged = (callback: (user: User | null) => void) => {
+    if (!isFirebaseConnected || !auth) {
+        console.warn("Auth service is in simulation mode.");
+        callback(null);
+        return () => {}; // Return an empty unsubscribe function
+    }
+
+    return auth.onAuthStateChanged((firebaseUser) => {
+        if (firebaseUser) {
+            const user: User = {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+            };
+            callback(user);
+        } else {
+            callback(null);
+        }
+    });
 };
 
-export const signOut = async () => {
-    console.log("Signing out...");
-    // Placeholder for sign-out logic
+const loginWithGoogle = async () => {
+    if (!isFirebaseConnected || !auth) {
+        alert("Authentication is not available in simulation mode.");
+        return;
+    }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        await auth.signInWithPopup(provider);
+    } catch (error) {
+        console.error("Error during Google sign-in:", error);
+        alert(`Sign-in failed: ${error.message}`);
+    }
+};
+
+const logout = () => {
+    if (isFirebaseConnected && auth) {
+        return auth.signOut();
+    }
+    console.warn("Attempted to logout in simulation mode.");
+    return Promise.resolve();
+};
+
+export const authService = {
+    onAuthStateChanged,
+    loginWithGoogle,
+    logout,
 };

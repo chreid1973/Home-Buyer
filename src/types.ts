@@ -1,3 +1,8 @@
+export interface User {
+  uid: string;
+  email: string | null;
+}
+
 export interface UserInput {
   propertyPrice: number;
   downPayment: number;
@@ -10,6 +15,8 @@ export interface UserInput {
 }
 
 export interface AnalysisResult {
+  id?: string; // Only present when saved
+  savedAt?: string; // Only present when saved
   verdict: {
     decision: 'good' | 'borderline' | 'bad';
     summary: string;
@@ -50,15 +57,13 @@ export interface AnalysisResult {
     overall: number; // 0-10
     narrative: string;
   };
+  userInput: UserInput;
 }
 
 export interface GroundingChunk {
   web?: {
-    uri: string;
-    title: string;
-  };
-  retrievedContext?: {
-    uri: string;
-    title: string;
+    // FIX: Made uri and title optional to match the type from @google/genai SDK.
+    uri?: string;
+    title?: string;
   };
 }

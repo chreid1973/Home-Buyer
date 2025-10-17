@@ -1,4 +1,48 @@
-<script type="importmap">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Property Scout AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #10002B 0%, #240046 50%, #3C096C 100%);
+      }
+      .stagger-in {
+        animation: stagger-in 0.5s ease-out both;
+      }
+      @keyframes stagger-in {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 12px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1a1a3d;
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: #5a189a;
+        border-radius: 6px;
+        border: 3px solid #1a1a3d;
+      }
+      .focus-glow:focus-within {
+        box-shadow: 0 0 15px rgba(167, 139, 250, 0.4);
+      }
+    </style>
+  <script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.0",
@@ -8,4 +52,15 @@
   }
 }
 </script>
-full contents of index.html
+</head>
+  <body>
+    <div id="root"></div>
+    <!-- Official, Stable SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script type="module" src="https://esm.sh/@google/generative-ai"></script>
+    
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
