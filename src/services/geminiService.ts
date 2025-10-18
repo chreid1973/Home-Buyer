@@ -30,85 +30,52 @@ if (!apiKey || apiKey.startsWith("YOUR") || apiKey.length < 10) {
         return { analysis: { ...mockAnalysis, userInput: input }, citations: [] };
     };
 } else {
-    // FIX: Use GoogleGenAI from @google/genai SDK
     const ai = new GoogleGenAI({ apiKey });
 
-    // FIX: Use Type enum for the schema definition
-    const analysisSchema = {
-        type: Type.OBJECT,
-        properties: {
-            verdict: {
-                type: Type.OBJECT,
-                properties: {
-                    decision: { type: Type.STRING, enum: ['good', 'borderline', 'bad'] },
-                    summary: { type: Type.STRING },
-                    pros: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    cons: { type: Type.ARRAY, items: { type: Type.STRING } },
-                },
-                required: ['decision', 'summary', 'pros', 'cons'],
-            },
-            marketAnalysis: {
-                type: Type.OBJECT,
-                properties: {
-                    trend: { type: Type.STRING, enum: ['up', 'down', 'stable'] },
-                    sentiment: { type: Type.NUMBER },
-                    narrative: { type: Type.STRING },
-                },
-                required: ['trend', 'sentiment', 'narrative'],
-            },
-            affordability: {
-                type: Type.OBJECT,
-                properties: {
-                    monthlyPayment: { type: Type.NUMBER },
-                    dtiRatio: { type: Type.NUMBER },
-                    affordabilityIndex: { type: Type.NUMBER },
-                    narrative: { type: Type.STRING },
-                },
-                required: ['monthlyPayment', 'dtiRatio', 'affordabilityIndex', 'narrative'],
-            },
-            ownershipCost: {
-                type: Type.OBJECT,
-                properties: {
-                    principalAndInterest: { type: Type.NUMBER },
-                    propertyTax: { type: Type.NUMBER },
-                    homeInsurance: { type: Type.NUMBER },
-                    maintenance: { type: Type.NUMBER },
-                    totalMonthlyCost: { type: Type.NUMBER },
-                },
-                required: ['principalAndInterest', 'propertyTax', 'homeInsurance', 'maintenance', 'totalMonthlyCost'],
-            },
-            breakEven: {
-                type: Type.OBJECT,
-                properties: {
-                    years: { type: Type.NUMBER },
-                    narrative: { type: Type.STRING },
-                },
-                required: ['years', 'narrative'],
-            },
-            commute: {
-                type: Type.OBJECT,
-                properties: {
-                    time: { type: Type.NUMBER },
-                    distance: { type: Type.NUMBER },
-                    narrative: { type: Type.STRING },
-                },
-                required: ['time', 'distance', 'narrative'],
-            },
-            locationScore: {
-                type: Type.OBJECT,
-                properties: {
-                    schools: { type: Type.NUMBER },
-                    crime: { type: Type.NUMBER },
-                    amenities: { type: Type.NUMBER },
-                    overall: { type: Type.NUMBER },
-                    narrative: { type: Type.STRING },
-                },
-                required: ['schools', 'crime', 'amenities', 'overall', 'narrative'],
-            },
-        },
-    };
-
     function createPrompt(input: UserInput): string {
+        const schemaString = `{
+    "verdict": {
+      "decision": "string (one of: 'good', 'borderline', 'bad')",
+      "summary": "string",
+      "pros": ["string"],
+      "cons": ["string"]
+    },
+    "marketAnalysis": {
+      "trend": "string (one of: 'up', 'down', 'stable')",
+      "sentiment": "number (0-100)",
+      "narrative": "string"
+    },
+    "affordability": {
+      "monthlyPayment": "number",
+      "dtiRatio": "number",
+      "affordabilityIndex": "number (0-100)",
+      "narrative": "string"
+    },
+    "ownershipCost": {
+      "principalAndInterest": "number",
+      "propertyTax": "number",
+      "homeInsurance": "number",
+      "maintenance": "number",
+      "totalMonthlyCost": "number"
+    },
+    "breakEven": {
+      "years": "number",
+      "narrative": "string"
+    },
+    "commute": {
+      "time": "number (in minutes)",
+      "distance": "number (in miles)",
+      "narrative": "string"
+    },
+    "locationScore": {
+      "schools": "number (0-10)",
+      "crime": "number (0-10)",
+      "amenities": "number (0-10)",
+      "overall": "number (0-10)",
+      "narrative": "string"
+    }
+  }`;
+
       return `
         Analyze the following real estate investment scenario and provide a detailed breakdown in JSON format.
         The user is considering buying a property and wants to know if it's a good financial decision. Use Google Search to find recent, relevant data for your analysis.
@@ -129,14 +96,16 @@ if (!apiKey || apiKey.startsWith("YOUR") || apiKey.length < 10) {
         Other Considerations:
         - User's Work Location: ${input.workLocation}
 
-        Your analysis must cover all the properties defined in the provided JSON schema. Provide the output strictly as a JSON object that validates against the schema. Do not include any markdown formatting like \`\`\`json or any other text outside the JSON object.
+        Your analysis MUST be a single, valid JSON object that conforms EXACTLY to the following structure. Do NOT include any markdown formatting like \`\`\`json or any other text outside the JSON object itself.
+
+        JSON Structure to follow:
+        ${schemaString}
         `;
     }
 
     getAnalysis = async (input: UserInput): Promise<{ analysis: AnalysisResult; citations: GroundingChunk[] }> => {
         try {
             const prompt = createPrompt(input);
-            // FIX: Per @google/genai guidelines, `responseMimeType` and `responseSchema` must not be used with the `googleSearch` tool.
             const response = await ai.models.generateContent({
                 model: "gemini-2.5-pro",
                 contents: prompt,
@@ -147,13 +116,19 @@ if (!apiKey || apiKey.startsWith("YOUR") || apiKey.length < 10) {
 
             const text = response.text;
             let analysisData: Omit<AnalysisResult, 'userInput'>;
-             try {
-                // Sanitize response, although Gemini with JSON schema is usually clean.
-                const cleanedText = text.replace(/^```json\s*|```\s*$/g, '').trim();
-                analysisData = JSON.parse(cleanedText);
+
+            try {
+                // Step 1: Try to find a JSON block within markdown ```json ... ```
+                const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+                if (jsonMatch && jsonMatch[1]) {
+                    analysisData = JSON.parse(jsonMatch[1]);
+                } else {
+                    // Step 2: If no block found, assume the whole string is JSON.
+                    analysisData = JSON.parse(text);
+                }
             } catch (e) {
-                console.error("Failed to parse Gemini response as JSON:", text);
-                throw new Error("The AI model returned an invalid data format.");
+                console.error("Failed to parse Gemini response as JSON. Raw response:", text);
+                throw new Error("The AI model returned an invalid data format. Please try again.");
             }
             
             const analysis: AnalysisResult = { ...analysisData, userInput: input };
@@ -162,11 +137,15 @@ if (!apiKey || apiKey.startsWith("YOUR") || apiKey.length < 10) {
             return { analysis, citations };
 
         } catch (error) {
-            console.error("Error fetching analysis from Gemini API:", error);
-            if (error instanceof Error && error.message.includes('API key not valid')) {
-                throw new Error("The provided Gemini API key is not valid.");
+            console.error("Error during Gemini API call or processing:", error);
+            // Preserve specific, user-friendly error messages
+            if (error instanceof Error) {
+                if (error.message.includes('API key not valid') || error.message.startsWith("The AI model returned")) {
+                    throw error;
+                }
             }
-            throw new Error("Failed to get analysis from Gemini API.");
+            // Generic fallback error
+            throw new Error("An unexpected error occurred while communicating with the AI service.");
         }
     }
 }

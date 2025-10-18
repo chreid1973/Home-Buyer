@@ -15,10 +15,10 @@ const Citation: React.FC<CitationProps> = ({ citations }) => {
     }
 
     return (
-        <div className="bg-slate-800 rounded-lg p-4 mt-8">
+        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 mt-8">
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full text-left font-semibold text-cyan-400 flex justify-between items-center"
+                className="w-full text-left font-semibold text-violet-300 flex justify-between items-center"
             >
                 <span>Sources used in this analysis</span>
                 <svg className={`w-5 h-5 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -32,7 +32,7 @@ const Citation: React.FC<CitationProps> = ({ citations }) => {
                                     href={citation.web!.uri} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="text-slate-300 hover:text-cyan-400 transition-colors"
+                                    className="text-slate-300 hover:text-violet-300 transition-colors"
                                 >
                                     {citation.web!.title || 'Untitled Source'}
                                 </a>

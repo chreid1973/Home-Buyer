@@ -45,14 +45,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, analyses, onView, onDelete,
                     <p className="text-slate-400 mt-1">Viewing saved analyses for {user.email}</p>
                 </div>
                 <div>
-                    <button onClick={onNewAnalysis} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    <button onClick={onNewAnalysis} className="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
                         + New Analysis
                     </button>
                 </div>
             </div>
 
             {analyses.length === 0 ? (
-                <div className="text-center bg-slate-800 p-12 rounded-lg">
+                <div className="text-center bg-slate-800/50 p-12 rounded-lg">
                     <p className="text-slate-300">You haven't saved any analyses yet.</p>
                 </div>
             ) : (
@@ -67,11 +67,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, analyses, onView, onDelete,
                         </button>
                     </div>
                     {analyses.map(analysis => (
-                        <div key={analysis.id} className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex flex-wrap items-center justify-between gap-4">
+                        <div key={analysis.id} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex flex-wrap items-center justify-between gap-4 hover:bg-slate-800 transition-colors duration-200">
                            <div className="flex items-center gap-4 flex-grow">
                                 <input 
                                     type="checkbox" 
-                                    className="h-5 w-5 rounded bg-slate-700 border-slate-600 text-cyan-600 focus:ring-cyan-500"
+                                    className="h-5 w-5 rounded bg-slate-700 border-slate-600 text-violet-600 focus:ring-violet-500"
                                     checked={selectedIds.includes(analysis.id!)}
                                     onChange={() => toggleSelection(analysis.id!)}
                                     aria-label={`Select ${analysis.userInput.propertyLocation} for comparison`}

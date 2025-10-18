@@ -159,7 +159,7 @@ function App() {
   };
 
   return (
-    <div className="bg-slate-900 text-white min-h-screen flex flex-col font-sans">
+    <div className="bg-transparent text-white min-h-screen flex flex-col font-sans">
       {/* FIX: Changed prop `onNewAnalysis` to `onReset` to match the expected props of the Header component. */}
       <Header 
         currentUser={currentUser}

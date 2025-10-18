@@ -1,4 +1,5 @@
 {
   "name": "Property Scout",
-  "description": "An AI-powered application that analyzes market data and personal finances to provide advice on whether it's a good time to buy a house. It uses mortgage rates, employment rates, and housing price trends to give a comprehensive recommendation."
+  "description": "An AI-powered application that analyzes market data and personal finances to provide advice on whether it's a good time to buy a house. It uses mortgage rates, employment rates, and housing price trends to give a comprehensive recommendation.",
+  "requestFramePermissions": []
 }

@@ -16,10 +16,10 @@ const formatCurrency = (value: number) => {
 
 const OwnershipCostChart: React.FC<OwnershipCostChartProps> = ({ ownershipCost }) => {
   const costs = [
-    { label: 'Principal & Interest', value: ownershipCost.principalAndInterest, color: 'bg-cyan-500' },
+    { label: 'Principal & Interest', value: ownershipCost.principalAndInterest, color: 'bg-violet-500' },
     { label: 'Property Tax', value: ownershipCost.propertyTax, color: 'bg-indigo-500' },
     { label: 'Home Insurance', value: ownershipCost.homeInsurance, color: 'bg-purple-500' },
-    { label: 'Maintenance', value: ownershipCost.maintenance, color: 'bg-pink-500' },
+    { label: 'Maintenance', value: ownershipCost.maintenance, color: 'bg-fuchsia-500' },
   ];
   
   const total = ownershipCost.totalMonthlyCost;
@@ -47,8 +47,8 @@ const OwnershipCostChart: React.FC<OwnershipCostChartProps> = ({ ownershipCost }
             </div>
         ))}
         <div className="flex justify-between items-center text-lg pt-2 border-t border-slate-700">
-            <span className="font-bold text-cyan-400">Total Monthly Cost</span>
-            <span className="font-bold text-cyan-400">{formatCurrency(total)}</span>
+            <span className="font-bold text-violet-300">Total Monthly Cost</span>
+            <span className="font-bold text-violet-300">{formatCurrency(total)}</span>
         </div>
       </div>
     </div>

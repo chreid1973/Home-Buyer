@@ -62,7 +62,7 @@ const Results: React.FC<ResultsProps> = ({ result, citations, onReset, currentUs
                 <p className="text-slate-300 mt-2 text-lg max-w-2xl">
                     The AI model returned an incomplete or malformed analysis. This can sometimes happen during periods of high demand. Please try generating a new analysis.
                 </p>
-                <button onClick={onReset} className="mt-8 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                <button onClick={onReset} className="mt-8 bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
                     Start New Analysis
                 </button>
             </div>
@@ -90,7 +90,7 @@ const Results: React.FC<ResultsProps> = ({ result, citations, onReset, currentUs
     return (
         <div className="max-w-6xl mx-auto">
             <div className="flex flex-wrap gap-4 justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold">Analysis Complete</h1>
+                <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-200 to-violet-300">Your Analysis is Ready</h1>
                 <div className="flex items-center gap-2">
                     {currentUser && (
                         isSaved ? (
@@ -103,7 +103,7 @@ const Results: React.FC<ResultsProps> = ({ result, citations, onReset, currentUs
                             </button>
                         )
                     )}
-                    <button onClick={onReset} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    <button onClick={onReset} className="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
                         New Analysis
                     </button>
                 </div>
@@ -119,12 +119,12 @@ const Results: React.FC<ResultsProps> = ({ result, citations, onReset, currentUs
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                <div className="lg:col-span-2 bg-slate-800 p-6 rounded-lg">
-                    <h3 className="text-2xl font-bold text-cyan-400 mb-4">Ownership Cost Breakdown</h3>
+                <div className="lg:col-span-2 bg-slate-800/50 border border-slate-700 p-6 rounded-xl">
+                    <h3 className="text-2xl font-bold text-violet-300 mb-4">Ownership Cost Breakdown</h3>
                     <OwnershipCostChart ownershipCost={result.ownershipCost} />
                 </div>
-                <div className="bg-slate-800 p-6 rounded-lg flex flex-col">
-                    <h3 className="text-2xl font-bold text-cyan-400 mb-4">Location Score</h3>
+                <div className="bg-slate-800/50 border border-slate-700 p-6 rounded-xl flex flex-col">
+                    <h3 className="text-2xl font-bold text-violet-300 mb-4">Location Score</h3>
                     <div className="flex-grow">
                         <LocationRadarChart locationScore={result.locationScore} />
                     </div>

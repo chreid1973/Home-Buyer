@@ -9,8 +9,8 @@ interface CommuteAnalysisProps {
 
 const CommuteAnalysis: React.FC<CommuteAnalysisProps> = ({ commute, from, to }) => {
   return (
-    <div className="bg-slate-800 p-6 rounded-lg h-full">
-        <h3 className="text-2xl font-bold text-cyan-400 mb-4">
+    <div className="bg-slate-800/50 border border-slate-700 p-6 rounded-xl h-full">
+        <h3 className="text-2xl font-bold text-violet-300 mb-4">
             Commute Analysis
         </h3>
         <div className="flex items-baseline space-x-4 mb-4">

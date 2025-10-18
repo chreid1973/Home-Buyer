@@ -30,7 +30,7 @@ This document outlines the high-level strategic epics for the Property Scout app
 
 ---
 
-### **v4.0: Live Platform Infrastructure (🚧 In Progress)**
+### **v4.0: Live Platform Infrastructure (✅ Shipped)**
 - **Objective:** Migrate the application from a simulated prototype to a production-ready application with a live, scalable backend. Achieve a true "#100s" state for the product.
 - **Key Results:**
     - Project prepared for Git-based lifecycle (`README.md`, `.gitignore`).

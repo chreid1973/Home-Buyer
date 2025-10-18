@@ -14,9 +14,9 @@ const AffordabilityIndex: React.FC<AffordabilityIndexProps> = ({ affordability }
   };
 
   return (
-    <div className="bg-slate-800 p-6 rounded-lg text-center h-full flex flex-col justify-between">
+    <div className="bg-slate-800/50 border border-slate-700 p-6 rounded-xl text-center h-full flex flex-col justify-between">
       <div>
-        <h3 className="text-xl font-bold text-cyan-400 flex items-center justify-center">
+        <h3 className="text-xl font-bold text-violet-300 flex items-center justify-center">
           Affordability
           <InfoTooltip text="Measures how manageable the monthly costs are relative to your income. Higher is better." />
         </h3>

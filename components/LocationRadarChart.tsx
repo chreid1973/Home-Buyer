@@ -23,7 +23,7 @@ const LocationRadarChart: React.FC<LocationRadarChartProps> = ({ locationScore }
                 <span className="text-white font-semibold">{score.value} / 10</span>
               </div>
               <div className="w-full bg-slate-700 rounded-full h-2.5">
-                <div className="bg-cyan-500 h-2.5 rounded-full" style={{ width: `${score.value * 10}%` }}></div>
+                <div className="bg-violet-500 h-2.5 rounded-full" style={{ width: `${score.value * 10}%` }}></div>
               </div>
             </div>
           ))}
